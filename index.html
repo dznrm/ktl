@@ -147,8 +147,12 @@
   <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
 </div>
 <div class="button-row">
-  <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
-  <button class="download-btn" onclick="downloadScreenshot()">💾 Download</button>
+  <select id="screenshot-mode">
+    <option value="all">📸 Screenshot All</option>
+    <option value="copyEach">📋 Copy Each Tier</option>
+    <option value="downloadEach">💾 Download Each Tier</option>
+  </select>
+  <button class="screenshot-btn" onclick="handleScreenshotAction()">Do It</button>
   <button class="reset-btn" onclick="resetTierlist()">🔁 Reset</button>
 </div>
 <div class="credit" id="credit-text">
@@ -381,8 +385,61 @@ function downloadScreenshot() {
 }
 
 function resetTierlist() {
-  while (floatingGrid.firstChild) floatingGrid.removeChild(floatingGrid.firstChild);
-  init();
+  const allCards = document.querySelectorAll('.user-card');
+  allCards.forEach(card => {
+    floatingGrid.appendChild(card);
+  });
+}
+
+async function handleScreenshotAction() {
+  const mode = document.getElementById("screenshot-mode").value;
+  if (mode === "all") return takeScreenshot();
+  if (mode === "copyEach") return copyEachTier();
+  if (mode === "downloadEach") return downloadEachTier();
+}
+
+function getTierElementsInOrder() {
+  const orderedLabels = ["S", "A", "B", "C", "D", "F", "I don't know this person", "Unsorted"];
+  const tiers = [];
+
+  orderedLabels.forEach(label => {
+    if (label === "I don't know this person") {
+      const unknown = document.getElementById("unknown-grid").parentElement;
+      if (unknown) tiers.push({ label, element: unknown });
+    } else if (label === "Unsorted") {
+      const unsorted = document.getElementById("floating-section");
+      if (unsorted) tiers.push({ label, element: unsorted });
+    } else {
+      const grids = document.querySelectorAll(`[data-tier='${label}']`);
+      if (grids.length) tiers.push({ label, element: grids[0].parentElement });
+    }
+  });
+  return tiers;
+}
+
+async function copyEachTier() {
+  const tiers = getTierElementsInOrder();
+  for (const { label, element } of tiers) {
+    await html2canvas(element, { backgroundColor: null, useCORS: true }).then(canvas => {
+      canvas.toBlob(blob => {
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          .then(() => alert(`Copied tier '${label}' to clipboard ✅`))
+          .catch(() => alert(`Failed to copy '${label}'`));
+      });
+    });
+  }
+}
+
+async function downloadEachTier() {
+  const tiers = getTierElementsInOrder();
+  for (const { label, element } of tiers) {
+    await html2canvas(element, { backgroundColor: null, useCORS: true }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = `${label.replace(/\s+/g, '_')}_tier.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    });
+  }
 }
 
 window.takeScreenshot = takeScreenshot;
