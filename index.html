@@ -261,10 +261,15 @@ async function init() {
     });
 
     sorted.forEach(user => {
-    const card = makeUserCard(user);
-    floatingGrid.appendChild(card);
+      const card = makeUserCard(user);
+      floatingGrid.appendChild(card);
+    });
   });
 }
+
+window.takeScreenshot = takeScreenshot;
+window.downloadScreenshot = downloadScreenshot;
+window.resetTierlist = resetTierlist;
 
 function downloadImage(canvas) {
   const link = document.createElement("a");
