@@ -57,18 +57,27 @@
       border-radius: 10px;
       background-color: #1a1a1a;
     }
+
+    .floating-pool {
+      margin-top: 40px;
+    }
   </style>
 </head>
 <body>
 
   <h1>My Discord Tierlist</h1>
   <div id="tiers-container"></div>
+  <div class="floating-pool">
+    <h2>Unsorted</h2>
+    <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
+  </div>
 
   <script>
     const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
 
-   const discordUserIDs = [
-  "1277028451835973703"
+  const discordUserIDs = [
+  "706451517619830804",
+  "1201620937049636994"
 ];
 
     const tierLabels = [
@@ -77,11 +86,11 @@
       "B",
       "C",
       "D",
-      "F",
-      "I don't know this person"
+      "F"
     ];
 
     const tiersContainer = document.getElementById("tiers-container");
+    const floatingGrid = document.getElementById("floating-grid");
 
     async function fetchUser(id) {
       const res = await fetch(`${backendBase}/user/${id}`);
@@ -96,9 +105,13 @@
 
       div.innerHTML = `
         <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="64" height="64" style="border-radius: 50%; margin-bottom: 6px;" />
-        <div style="font-size: 0.9em;">${user.username}</div>
-        <div style="font-size: 0.7em; color: gray;">#${user.discriminator}</div>
+        <div style="font-size: 0.85em; font-weight: bold;">${user.global_name || user.username}</div>
+        <div style="font-size: 0.7em; color: gray;">@${user.username}</div>
       `;
+
+      div.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", user.id);
+      });
 
       return div;
     }
@@ -123,10 +136,23 @@
 
         userGrid.addEventListener("dragover", e => e.preventDefault());
         userGrid.addEventListener("drop", e => {
+          e.preventDefault();
           const userId = e.dataTransfer.getData("text/plain");
           const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
-          userGrid.appendChild(card);
+          if (card && e.currentTarget !== card.parentNode) {
+            e.currentTarget.appendChild(card);
+          }
         });
+      });
+
+      floatingGrid.addEventListener("dragover", e => e.preventDefault());
+      floatingGrid.addEventListener("drop", e => {
+        e.preventDefault();
+        const userId = e.dataTransfer.getData("text/plain");
+        const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
+        if (card && floatingGrid !== card.parentNode) {
+          floatingGrid.appendChild(card);
+        }
       });
     }
 
@@ -134,18 +160,15 @@
       renderTiers();
 
       const users = await Promise.all(discordUserIDs.map(fetchUser));
-      const sorted = users.sort((a, b) => a.username.localeCompare(b.username));
-
-      const startTier = document.querySelector('[data-tier="I don\'t know this person"]');
+      const sorted = users.sort((a, b) => {
+        const nameA = (a.global_name || a.username).toLowerCase();
+        const nameB = (b.global_name || b.username).toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
 
       sorted.forEach(user => {
         const card = makeUserCard(user);
-
-        card.addEventListener("dragstart", e => {
-          e.dataTransfer.setData("text/plain", user.id);
-        });
-
-        startTier.appendChild(card);
+        floatingGrid.appendChild(card);
       });
     }
 
