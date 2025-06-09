@@ -347,20 +347,24 @@ function init() {
     return user;
   });
 
-  Promise.all(fetchAllUsers).then(users => {
+ Promise.all(fetchAllUsers)
+  .then(users => {
     const loader = document.getElementById('loading-indicator');
     if (loader) loader.remove();
-    const sorted = users.sort((a, b) => {
+
+    const validUsers = users.filter(u => u && u.username);
+    const sorted = validUsers.sort((a, b) => {
       const nameA = (a.global_name || a.username).toLowerCase();
       const nameB = (b.global_name || b.username).toLowerCase();
       return nameA.localeCompare(nameB);
     });
+
     sorted.forEach(user => {
       const card = makeUserCard(user);
       floatingGrid.appendChild(card);
     });
-  });
-}
+  })
+  .catch(console.error);
 
 function takeScreenshot() {
   const button = document.querySelector('.screenshot-btn');
