@@ -253,13 +253,14 @@ function renderTiers() {
 
 async function init() {
   renderTiers();
-  const users = await Promise.all(discordUserIDs.map(fetchUser));
-  const sorted = users.sort((a, b) => {
-    const nameA = (a.global_name || a.username).toLowerCase();
-    const nameB = (b.global_name || b.username).toLowerCase();
-    return nameA.localeCompare(nameB);
-  });
-  sorted.forEach(user => {
+  Promise.all(discordUserIDs.map(fetchUser)).then(users => {
+    const sorted = users.sort((a, b) => {
+      const nameA = (a.global_name || a.username).toLowerCase();
+      const nameB = (b.global_name || b.username).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    sorted.forEach(user => {
     const card = makeUserCard(user);
     floatingGrid.appendChild(card);
   });
