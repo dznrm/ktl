@@ -12,70 +12,78 @@
       padding: 20px;
     }
 
-    h1, h2 {
-      margin-bottom: 10px;
+    h1 {
+      font-size: 2em;
+      margin-bottom: 30px;
     }
 
     .tier {
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 12px;
+      background-color: #2a2a2a;
     }
 
     .tier-name {
       font-weight: bold;
-      font-size: 1.2em;
+      font-size: 1.3em;
       margin-bottom: 10px;
     }
 
     .user-card {
-      background: #2a2a2a;
+      background: #3a3a3a;
+      border: 2px solid #555;
       border-radius: 10px;
       padding: 10px;
       width: 100px;
       text-align: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: transform 0.2s;
+      margin: 8px;
+      cursor: grab;
+      transition: transform 0.2s, border 0.2s;
     }
 
     .user-card:hover {
       transform: scale(1.05);
+      border-color: #888;
     }
 
     .user-grid {
       display: flex;
       flex-wrap: wrap;
+      min-height: 80px;
+      padding: 5px;
+      border: 2px dashed #444;
+      border-radius: 10px;
+      background-color: #1a1a1a;
     }
   </style>
 </head>
 <body>
 
   <h1>My Discord Tierlist</h1>
-
   <div id="tiers-container"></div>
 
   <script>
     const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
-    
+
     const discordUserIDs = [
-      "80351110224678912", // b1nzy.
-      "441512385498251264", // test user
-      "873778665741508638"  // another user
+      "80351110224678912",
+      "441512385498251264",
+      "873778665741508638"
     ];
 
     const tierLabels = [
-      "I don't know this person",
-      "F",
-      "D",
-      "C",
-      "B",
+      "S",
       "A",
-      "S"
+      "B",
+      "C",
+      "D",
+      "F",
+      "I don't know this person"
     ];
 
     const tiersContainer = document.getElementById("tiers-container");
-
-    const tierState = {};
 
     async function fetchUser(id) {
       const res = await fetch(`${backendBase}/user/${id}`);
@@ -86,14 +94,13 @@
       const div = document.createElement("div");
       div.className = "user-card";
       div.draggable = true;
+      div.dataset.userid = user.id;
 
       div.innerHTML = `
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="64" height="64" style="border-radius: 50%;" />
-        <div style="font-size: 0.9em; margin-top: 5px;">${user.username}</div>
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="64" height="64" style="border-radius: 50%; margin-bottom: 6px;" />
+        <div style="font-size: 0.9em;">${user.username}</div>
         <div style="font-size: 0.7em; color: gray;">#${user.discriminator}</div>
       `;
-
-      div.dataset.userid = user.id;
 
       return div;
     }
