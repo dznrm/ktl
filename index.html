@@ -79,11 +79,12 @@
 
     .button-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-top: 30px;
     }
 
-    .screenshot-btn, .reset-btn {
+    .screenshot-btn, .reset-btn, .download-btn {
       background-color: #444;
       border: none;
       padding: 10px 20px;
@@ -93,7 +94,7 @@
       cursor: pointer;
     }
 
-    .screenshot-btn:hover, .reset-btn:hover {
+    .screenshot-btn:hover, .reset-btn:hover, .download-btn:hover {
       background-color: #666;
     }
 
@@ -137,6 +138,7 @@
   </div>
   <div class="button-row">
     <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
+    <button class="download-btn" onclick="downloadScreenshot()">💾 Download</button>
     <button class="reset-btn" onclick="resetTierlist()">🔁 Reset</button>
   </div>
 
@@ -181,7 +183,8 @@
       "996506627408678964",
       "229571357984161792",
       "780153669609717803",
-      "999832416006963221"];
+      "999832416006963221"
+    ];
 
     const tierLabels = ["S", "A", "B", "C", "D", "F"];
 
@@ -226,11 +229,7 @@
         tierDiv.appendChild(title);
         tierDiv.appendChild(userGrid);
         tiersContainer.appendChild(tierDiv);
-
-        new Sortable(userGrid, { group: "tierlist", animation: 150, onSort: saveLayout });
       });
-
-      new Sortable(floatingGrid, { group: "tierlist", animation: 150, onSort: saveLayout });
     }
 
     async function init() {
@@ -245,69 +244,75 @@
 
       sorted.forEach(user => {
         const card = makeUserCard(user);
-        card.id = `user-${user.id}`;
         floatingGrid.appendChild(card);
       });
-
-      loadLayout();
     }
 
-    function saveLayout() {
-      const layout = {};
-      [...document.querySelectorAll(".user-grid")].forEach(grid => {
-        const ids = [...grid.querySelectorAll(".user-card")].map(card => card.dataset.userid);
-        layout[grid.dataset.tier] = ids;
-      });
-      localStorage.setItem("kencord-tierlist", JSON.stringify(layout));
+    function downloadImage(canvas) {
+      const link = document.createElement("a");
+      link.download = "kencord-tierlist.png";
+      link.href = canvas.toDataURL();
+      link.click();
     }
 
-    function loadLayout() {
-      const data = JSON.parse(localStorage.getItem("kencord-tierlist") || "{}");
-      Object.entries(data).forEach(([tier, ids]) => {
-        const container = document.querySelector(`.user-grid[data-tier="${tier}"]`);
-        if (container) {
-          ids.forEach(id => {
-            const el = document.querySelector(`.user-card[data-userid="${id}"]`);
-            if (el) container.appendChild(el);
-          });
-        }
-      });
-    }
+    function downloadScreenshot() {
+      const shouldHideUnsorted = floatingGrid.children.length === 0;
+      const button = document.querySelector('.screenshot-btn');
+      const resetBtn = document.querySelector('.reset-btn');
+      const downloadBtn = document.querySelector('.download-btn');
 
-    function resetTierlist() {
-      localStorage.removeItem("kencord-tierlist");
-      [...document.querySelectorAll(".user-card")].forEach(card => floatingGrid.appendChild(card));
-      const sorted = [...floatingGrid.children].sort((a, b) => {
-        const nameA = a.querySelector("div").textContent.toLowerCase();
-        const nameB = b.querySelector("div").textContent.toLowerCase();
-        return nameA.localeCompare(nameB);
+      if (shouldHideUnsorted) floatingSection.style.display = 'none';
+      button.style.display = 'none';
+      resetBtn.style.display = 'none';
+      downloadBtn.style.display = 'none';
+      creditText.classList.add("big");
+
+      html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
+        downloadImage(canvas);
+
+        if (shouldHideUnsorted) floatingSection.style.display = 'block';
+        button.style.display = 'block';
+        resetBtn.style.display = 'block';
+        downloadBtn.style.display = 'block';
+        creditText.classList.remove("big");
       });
-      sorted.forEach(card => floatingGrid.appendChild(card));
     }
 
     function takeScreenshot() {
       const button = document.querySelector('.screenshot-btn');
       const resetBtn = document.querySelector('.reset-btn');
+      const downloadBtn = document.querySelector('.download-btn');
       const shouldHideUnsorted = floatingGrid.children.length === 0;
 
       if (shouldHideUnsorted) floatingSection.style.display = 'none';
       button.style.display = 'none';
       resetBtn.style.display = 'none';
-
+      downloadBtn.style.display = 'none';
       creditText.classList.add("big");
 
       html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
         if (shouldHideUnsorted) floatingSection.style.display = 'block';
         button.style.display = 'block';
         resetBtn.style.display = 'block';
+        downloadBtn.style.display = 'block';
         creditText.classList.remove("big");
 
         canvas.toBlob(blob => {
-          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-            .then(() => alert('Screenshot copied to clipboard ✅'))
-            .catch(() => alert('Failed to copy screenshot. Use a modern browser.'));
+          if (navigator.clipboard && navigator.clipboard.write) {
+            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+              .then(() => alert('Screenshot copied to clipboard ✅'))
+              .catch(() => alert('Failed to copy screenshot. Use a modern browser.'));
+          } else {
+            alert('Clipboard not supported. Use a modern browser.');
+          }
         });
       });
+    }
+
+    function resetTierlist() {
+      localStorage.removeItem("kencord-tierlist");
+      while (floatingGrid.firstChild) floatingGrid.removeChild(floatingGrid.firstChild);
+      init();
     }
 
     init();
