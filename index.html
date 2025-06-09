@@ -88,6 +88,13 @@
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 30px;
+      align-items: center;
+    }
+
+    .dropdown-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .screenshot-btn, .reset-btn, .download-btn {
@@ -147,12 +154,34 @@
   <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
 </div>
 <div class="button-row">
-  <select id="screenshot-mode">
-    <option value="all">📸 Screenshot All</option>
-    <option value="copyEach">📋 Copy Each Tier</option>
-    <option value="downloadEach">💾 Download Each Tier</option>
-  </select>
-  <button class="screenshot-btn" onclick="handleScreenshotAction()">Do It</button>
+  <div class="dropdown-group">
+    <select id="screenshot-mode">
+      <option value="all">📸 Screenshot All</option>
+      <option value="tier:S">📷 S</option>
+      <option value="tier:A">📷 A</option>
+      <option value="tier:B">📷 B</option>
+      <option value="tier:C">📷 C</option>
+      <option value="tier:D">📷 D</option>
+      <option value="tier:F">📷 F</option>
+      <option value="tier:I don't know this person">📷 I don't know this person</option>
+      <option value="tier:Unsorted">📷 Unsorted</option>
+    </select>
+    <button class="screenshot-btn" onclick="handleScreenshotAction()">✅</button>
+  </div>
+  <div class="dropdown-group">
+    <select id="download-mode">
+      <option value="all">💾 Download All</option>
+      <option value="tier:S">💾 S</option>
+      <option value="tier:A">💾 A</option>
+      <option value="tier:B">💾 B</option>
+      <option value="tier:C">💾 C</option>
+      <option value="tier:D">💾 D</option>
+      <option value="tier:F">💾 F</option>
+      <option value="tier:I don't know this person">💾 I don't know this person</option>
+      <option value="tier:Unsorted">💾 Unsorted</option>
+    </select>
+    <button class="download-btn" onclick="handleDownloadAction()">✅</button>
+  </div>
   <button class="reset-btn" onclick="resetTierlist()">🔁 Reset</button>
 </div>
 <div class="credit" id="credit-text">
