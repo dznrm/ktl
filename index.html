@@ -253,14 +253,26 @@ function renderTiers() {
 
 async function init() {
   renderTiers();
-  Promise.all(discordUserIDs.map(fetchUser)).then(users => {
+  const loading = document.createElement('div');
+  loading.style.textAlign = 'center';
+  loading.style.marginTop = '20px';
+  loading.id = 'loading-indicator';
+  loading.textContent = `Loading users (0/${discordUserIDs.length})...`;
+  document.body.insertBefore(loading, tiersContainer);
+
+  let loadedCount = 0;
+  Promise.all(discordUserIDs.map(async (id) => {
+    const user = await fetchUser(id);
+    loadedCount++;
+    document.getElementById('loading-indicator').textContent = `Loading users (${loadedCount}/${discordUserIDs.length})...`;
+    return user;
+  })).then(users => {
+    document.getElementById('loading-indicator').remove();
     const sorted = users.sort((a, b) => {
       const nameA = (a.global_name || a.username).toLowerCase();
       const nameB = (b.global_name || b.username).toLowerCase();
       return nameA.localeCompare(nameB);
     });
-
-    sorted.forEach(user => {
       const card = makeUserCard(user);
       floatingGrid.appendChild(card);
     });
