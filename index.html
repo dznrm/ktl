@@ -45,6 +45,7 @@
       cursor: grab;
       transition: transform 0.2s, border 0.2s;
       touch-action: manipulation;
+      user-select: none;
     }
 
     .user-card img {
@@ -60,6 +61,11 @@
     .user-card:hover {
       transform: scale(1.05);
       border-color: #888;
+    }
+
+    .user-card.selected {
+      border-color: #fff;
+      box-shadow: 0 0 10px #888;
     }
 
     .user-grid {
@@ -130,192 +136,179 @@
 </head>
 <body>
 
-  <h1>My Kencord Tierlist</h1>
-  <div id="tiers-container"></div>
-  <div class="floating-pool" id="floating-section">
-    <h2>Unsorted</h2>
-    <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
-  </div>
-  <div class="button-row">
-    <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
-    <button class="download-btn" onclick="downloadScreenshot()">💾 Download</button>
-    <button class="reset-btn" onclick="resetTierlist()">🔁 Reset</button>
-  </div>
+<h1>My Kencord Tierlist</h1>
+<div id="tiers-container"></div>
+<div class="floating-pool" id="floating-section">
+  <h2>Unsorted</h2>
+  <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
+</div>
+<div class="button-row">
+  <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
+  <button class="download-btn" onclick="downloadScreenshot()">💾 Download</button>
+  <button class="reset-btn" onclick="resetTierlist()">🔁 Reset</button>
+</div>
+<div class="credit" id="credit-text">
+  Brought to you by @dznrm
+</div>
 
-  <div class="credit" id="credit-text">
-    Brought to you by @dznrm
-  </div>
+<script>
+const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
+const discordUserIDs = ["1277028451835973703","706451517619830804","1201620937049636994"];
+const tierLabels = ["S", "A", "B", "C", "D", "F"];
+const tiersContainer = document.getElementById("tiers-container");
+const floatingGrid = document.getElementById("floating-grid");
+const floatingSection = document.getElementById("floating-section");
+const creditText = document.getElementById("credit-text");
+let selectedUser = null;
 
-  <script>
-    const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
+async function fetchUser(id) {
+  const res = await fetch(`${backendBase}/user/${id}`);
+  return await res.json();
+}
 
-    const discordUserIDs = [
-      "1277028451835973703",
-      "706451517619830804",
-      "1201620937049636994",
-      "607111863733321748",
-      "715662341554831432",
-      "998198569070759998",
-      "1243691872547770436",
-      "550362161726357505",
-      "566552776570568704",
-      "737378159263219743",
-      "780160448019562508",
-      "420340694675095563",
-      "1220187432675311636",
-      "814601973277524029",
-      "1269470906657275914",
-      "530255167593906185",
-      "1085721807803396096",
-      "1200208828331995148",
-      "985470745905864724",
-      "838262453455683659",
-      "791032529880481813",
-      "1120343508088266793",
-      "779791460051845120",
-      "808883970879913996",
-      "703224335451684936",
-      "697831265583235234",
-      "508744066402484270",
-      "1165401771808653433",
-      "1007019174465380472",
-      "959151490910548048",
-      "996506627408678964",
-      "229571357984161792",
-      "780153669609717803",
-      "999832416006963221"
-    ];
+function makeUserCard(user) {
+  const div = document.createElement("div");
+  div.className = "user-card";
+  div.dataset.userid = user.id;
 
-    const tierLabels = ["S", "A", "B", "C", "D", "F"];
+  div.innerHTML = `
+    <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
+    <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
+    <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
+  `;
 
-    const tiersContainer = document.getElementById("tiers-container");
-    const floatingGrid = document.getElementById("floating-grid");
-    const floatingSection = document.getElementById("floating-section");
-    const creditText = document.getElementById("credit-text");
-
-    async function fetchUser(id) {
-      const res = await fetch(`${backendBase}/user/${id}`);
-      return await res.json();
+  div.addEventListener("click", () => {
+    if (window.innerWidth <= 600) {
+      if (selectedUser) selectedUser.classList.remove("selected");
+      if (selectedUser === div) {
+        selectedUser = null;
+      } else {
+        selectedUser = div;
+        selectedUser.classList.add("selected");
+      }
     }
+  });
 
-    function makeUserCard(user) {
-      const div = document.createElement("div");
-      div.className = "user-card";
-      div.dataset.userid = user.id;
+  return div;
+}
 
-      div.innerHTML = `
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
-        <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
-        <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
-      `;
+function renderTiers() {
+  tiersContainer.innerHTML = "";
+  tierLabels.forEach(label => {
+    const tierDiv = document.createElement("div");
+    tierDiv.className = "tier";
 
-      return div;
-    }
+    const title = document.createElement("div");
+    title.className = "tier-name";
+    title.textContent = label;
 
-    function renderTiers() {
-      tiersContainer.innerHTML = "";
-      tierLabels.forEach(label => {
-        const tierDiv = document.createElement("div");
-        tierDiv.className = "tier";
+    const userGrid = document.createElement("div");
+    userGrid.className = "user-grid";
+    userGrid.dataset.tier = label;
+    userGrid.addEventListener("click", () => {
+      if (selectedUser && window.innerWidth <= 600) {
+        userGrid.appendChild(selectedUser);
+        selectedUser.classList.remove("selected");
+        selectedUser = null;
+      }
+    });
 
-        const title = document.createElement("div");
-        title.className = "tier-name";
-        title.textContent = label;
+    new Sortable(userGrid, {
+      animation: 150,
+      group: "users",
+      fallbackOnBody: true,
+      swapThreshold: 0.65
+    });
 
-        const userGrid = document.createElement("div");
-        userGrid.className = "user-grid";
-        userGrid.dataset.tier = label;
+    tierDiv.appendChild(title);
+    tierDiv.appendChild(userGrid);
+    tiersContainer.appendChild(tierDiv);
+  });
 
-        tierDiv.appendChild(title);
-        tierDiv.appendChild(userGrid);
-        tiersContainer.appendChild(tierDiv);
-      });
-    }
+  new Sortable(floatingGrid, {
+    animation: 150,
+    group: "users",
+    fallbackOnBody: true,
+    swapThreshold: 0.65
+  });
+}
 
-    async function init() {
-      renderTiers();
+async function init() {
+  renderTiers();
+  const users = await Promise.all(discordUserIDs.map(fetchUser));
+  const sorted = users.sort((a, b) => {
+    const nameA = (a.global_name || a.username).toLowerCase();
+    const nameB = (b.global_name || b.username).toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+  sorted.forEach(user => {
+    const card = makeUserCard(user);
+    floatingGrid.appendChild(card);
+  });
+}
 
-      const users = await Promise.all(discordUserIDs.map(fetchUser));
-      const sorted = users.sort((a, b) => {
-        const nameA = (a.global_name || a.username).toLowerCase();
-        const nameB = (b.global_name || b.username).toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
+function downloadImage(canvas) {
+  const link = document.createElement("a");
+  link.download = "kencord-tierlist.png";
+  link.href = canvas.toDataURL();
+  link.click();
+}
 
-      sorted.forEach(user => {
-        const card = makeUserCard(user);
-        floatingGrid.appendChild(card);
-      });
-    }
+function downloadScreenshot() {
+  const shouldHideUnsorted = floatingGrid.children.length === 0;
+  const button = document.querySelector('.screenshot-btn');
+  const resetBtn = document.querySelector('.reset-btn');
+  const downloadBtn = document.querySelector('.download-btn');
+  if (shouldHideUnsorted) floatingSection.style.display = 'none';
+  button.style.display = 'none';
+  resetBtn.style.display = 'none';
+  downloadBtn.style.display = 'none';
+  creditText.classList.add("big");
+  html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
+    downloadImage(canvas);
+    if (shouldHideUnsorted) floatingSection.style.display = 'block';
+    button.style.display = 'block';
+    resetBtn.style.display = 'block';
+    downloadBtn.style.display = 'block';
+    creditText.classList.remove("big");
+  });
+}
 
-    function downloadImage(canvas) {
-      const link = document.createElement("a");
-      link.download = "kencord-tierlist.png";
-      link.href = canvas.toDataURL();
-      link.click();
-    }
+function takeScreenshot() {
+  const button = document.querySelector('.screenshot-btn');
+  const resetBtn = document.querySelector('.reset-btn');
+  const downloadBtn = document.querySelector('.download-btn');
+  const shouldHideUnsorted = floatingGrid.children.length === 0;
+  if (shouldHideUnsorted) floatingSection.style.display = 'none';
+  button.style.display = 'none';
+  resetBtn.style.display = 'none';
+  downloadBtn.style.display = 'none';
+  creditText.classList.add("big");
+  html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
+    if (shouldHideUnsorted) floatingSection.style.display = 'block';
+    button.style.display = 'block';
+    resetBtn.style.display = 'block';
+    downloadBtn.style.display = 'block';
+    creditText.classList.remove("big");
+    canvas.toBlob(blob => {
+      if (navigator.clipboard && navigator.clipboard.write) {
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          .then(() => alert('Screenshot copied to clipboard ✅'))
+          .catch(() => alert('Failed to copy screenshot. Use a modern browser.'));
+      } else {
+        alert('Clipboard not supported. Use a modern browser.');
+      }
+    });
+  });
+}
 
-    function downloadScreenshot() {
-      const shouldHideUnsorted = floatingGrid.children.length === 0;
-      const button = document.querySelector('.screenshot-btn');
-      const resetBtn = document.querySelector('.reset-btn');
-      const downloadBtn = document.querySelector('.download-btn');
+function resetTierlist() {
+  localStorage.removeItem("kencord-tierlist");
+  while (floatingGrid.firstChild) floatingGrid.removeChild(floatingGrid.firstChild);
+  init();
+}
 
-      if (shouldHideUnsorted) floatingSection.style.display = 'none';
-      button.style.display = 'none';
-      resetBtn.style.display = 'none';
-      downloadBtn.style.display = 'none';
-      creditText.classList.add("big");
-
-      html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
-        downloadImage(canvas);
-
-        if (shouldHideUnsorted) floatingSection.style.display = 'block';
-        button.style.display = 'block';
-        resetBtn.style.display = 'block';
-        downloadBtn.style.display = 'block';
-        creditText.classList.remove("big");
-      });
-    }
-
-    function takeScreenshot() {
-      const button = document.querySelector('.screenshot-btn');
-      const resetBtn = document.querySelector('.reset-btn');
-      const downloadBtn = document.querySelector('.download-btn');
-      const shouldHideUnsorted = floatingGrid.children.length === 0;
-
-      if (shouldHideUnsorted) floatingSection.style.display = 'none';
-      button.style.display = 'none';
-      resetBtn.style.display = 'none';
-      downloadBtn.style.display = 'none';
-      creditText.classList.add("big");
-
-      html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
-        if (shouldHideUnsorted) floatingSection.style.display = 'block';
-        button.style.display = 'block';
-        resetBtn.style.display = 'block';
-        downloadBtn.style.display = 'block';
-        creditText.classList.remove("big");
-
-        canvas.toBlob(blob => {
-          if (navigator.clipboard && navigator.clipboard.write) {
-            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-              .then(() => alert('Screenshot copied to clipboard ✅'))
-              .catch(() => alert('Failed to copy screenshot. Use a modern browser.'));
-          } else {
-            alert('Clipboard not supported. Use a modern browser.');
-          }
-        });
-      });
-    }
-
-    function resetTierlist() {
-      localStorage.removeItem("kencord-tierlist");
-      while (floatingGrid.firstChild) floatingGrid.removeChild(floatingGrid.firstChild);
-      init();
-    }
-
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
