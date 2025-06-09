@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discord Tierlist</title>
+  <style>
+    body {
+      background: #1e1e1e;
+      color: #f5f5f5;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    h1, h2 {
+      margin-bottom: 10px;
+    }
+
+    .tier {
+      margin-bottom: 20px;
+    }
+
+    .tier-name {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    .user-card {
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 10px;
+      width: 100px;
+      text-align: center;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .user-card:hover {
+      transform: scale(1.05);
+    }
+
+    .user-grid {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>My Discord Tierlist</h1>
+
+  <div id="tiers-container"></div>
+
+  <script>
+    const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
+    
+    const discordUserIDs = [
+      "80351110224678912", // b1nzy.
+      "441512385498251264", // test user
+      "873778665741508638"  // another user
+    ];
+
+    const tierLabels = [
+      "I don't know this person",
+      "F",
+      "D",
+      "C",
+      "B",
+      "A",
+      "S"
+    ];
+
+    const tiersContainer = document.getElementById("tiers-container");
+
+    const tierState = {};
+
+    async function fetchUser(id) {
+      const res = await fetch(`${backendBase}/user/${id}`);
+      return await res.json();
+    }
+
+    function makeUserCard(user) {
+      const div = document.createElement("div");
+      div.className = "user-card";
+      div.draggable = true;
+
+      div.innerHTML = `
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="64" height="64" style="border-radius: 50%;" />
+        <div style="font-size: 0.9em; margin-top: 5px;">${user.username}</div>
+        <div style="font-size: 0.7em; color: gray;">#${user.discriminator}</div>
+      `;
+
+      div.dataset.userid = user.id;
+
+      return div;
+    }
+
+    function renderTiers() {
+      tiersContainer.innerHTML = "";
+      tierLabels.forEach(label => {
+        const tierDiv = document.createElement("div");
+        tierDiv.className = "tier";
+
+        const title = document.createElement("div");
+        title.className = "tier-name";
+        title.textContent = label;
+
+        const userGrid = document.createElement("div");
+        userGrid.className = "user-grid";
+        userGrid.dataset.tier = label;
+
+        tierDiv.appendChild(title);
+        tierDiv.appendChild(userGrid);
+        tiersContainer.appendChild(tierDiv);
+
+        userGrid.addEventListener("dragover", e => e.preventDefault());
+        userGrid.addEventListener("drop", e => {
+          const userId = e.dataTransfer.getData("text/plain");
+          const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
+          userGrid.appendChild(card);
+        });
+      });
+    }
+
+    async function init() {
+      renderTiers();
+
+      const users = await Promise.all(discordUserIDs.map(fetchUser));
+      const sorted = users.sort((a, b) => a.username.localeCompare(b.username));
+
+      const startTier = document.querySelector('[data-tier="I don\'t know this person"]');
+
+      sorted.forEach(user => {
+        const card = makeUserCard(user);
+
+        card.addEventListener("dragstart", e => {
+          e.dataTransfer.setData("text/plain", user.id);
+        });
+
+        startTier.appendChild(card);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
