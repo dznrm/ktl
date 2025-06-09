@@ -100,7 +100,8 @@
     }
 
     .credit-box {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       background: linear-gradient(135deg, #333, #444);
       padding: 12px 16px;
       margin-top: 8px;
@@ -109,6 +110,14 @@
       font-size: 0.85em;
       box-shadow: 0 0 10px rgba(0,255,200,0.3), 0 0 5px rgba(0,255,200,0.2);
       backdrop-filter: blur(6px);
+      gap: 10px;
+    }
+
+    .credit-box img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     @media (max-width: 600px) {
@@ -137,8 +146,8 @@
   <div class="credit">
     Brought to you by
     <div class="credit-box">
-      <img src="https://cdn.discordapp.com/avatars/706451517619830804/a_8d6462b5d793f5d5be6d9f29dc84b06b.gif?size=64" alt="owner" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:6px;">
-      <span style="vertical-align:middle;">@dzmn (706451517619830804)</span>
+      <img src="https://cdn.discordapp.com/avatars/706451517619830804/4ef7a3b0151eafc59eb2a8e2b8e4c9db.png?size=64" alt="dzmn pfp">
+      <span>@dznrm (706451517619830804)</span>
     </div>
   </div>
 
