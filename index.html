@@ -196,17 +196,17 @@ function makeUserCard(user) {
   ].includes(user.id);
 
   const badge = isOwner
-    ? '<span style="background:#010101;color:white;padding:2px 6px;border-radius:10px;">owner</span>'
+    ? '<span style=\"background:#010101;color:white;padding:2px 6px;border-radius:10px;\">Owner</span>'
     : isStaff
-    ? '<span style="background:#54e4b9;color:black;padding:2px 6px;border-radius:10px;">staff</span>'
+    ? '<span style="background:#54e4b9;color:black;padding:2px 6px;border-radius:10px;">Staff</span>'
     : '';
 
-  const emoji = isOwner ? '👑' : isStaff ? '🔨' : '';
+  const emoji = isOwner ? '👑' : '';
 
   div.innerHTML = `
     <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
     <div style="font-size: 0.8em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
-      ${emoji} ${user.global_name || user.username}
+      ${user.global_name || user.username} ${isStaff ? '🔨' : ''}
     </div>
     <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
     <div style="font-size: 0.6em; margin-top: 2px;">${badge}</div>
