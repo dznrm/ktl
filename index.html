@@ -384,18 +384,20 @@ function downloadScreenshot() {
   });
 }
 
-function resetTierlist() {
+  function resetTierlist() {
   const allCards = document.querySelectorAll('.user-card');
   allCards.forEach(card => {
     floatingGrid.appendChild(card);
   });
 }
 
-async function handleScreenshotAction() {
+function handleScreenshotAction() {
   const mode = document.getElementById("screenshot-mode").value;
   if (mode === "all") return takeScreenshot();
-  if (mode === "copyEach") return copyEachTier();
-  if (mode === "downloadEach") return downloadEachTier();
+  if (mode.startsWith("tier:")) {
+    const tier = mode.split(":")[1];
+    return screenshotTier(tier);
+  }
 }
 
 function getTierElementsInOrder() {
@@ -417,30 +419,36 @@ function getTierElementsInOrder() {
   return tiers;
 }
 
-async function copyEachTier() {
+async function screenshotTier(label) {
   const tiers = getTierElementsInOrder();
-  for (const { label, element } of tiers) {
-    await html2canvas(element, { backgroundColor: null, useCORS: true }).then(canvas => {
-      canvas.toBlob(blob => {
-        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-          .then(() => alert(`Copied tier '${label}' to clipboard ✅`))
-          .catch(() => alert(`Failed to copy '${label}'`));
-      });
-    });
-  }
+  const tier = tiers.find(t => t.label === label);
+  if (!tier) return alert(`Tier '${label}' not found.`);
+  await html2canvas(tier.element, { backgroundColor: null, useCORS: true }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = `${label.replace(/\s+/g, '_')}_tier.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+  });
 }
 
-async function downloadEachTier() {
-  const tiers = getTierElementsInOrder();
-  for (const { label, element } of tiers) {
-    await html2canvas(element, { backgroundColor: null, useCORS: true }).then(canvas => {
-      const link = document.createElement("a");
-      link.download = `${label.replace(/\s+/g, '_')}_tier.png`;
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  }
-}
+document.addEventListener("DOMContentLoaded", () => {
+  const dropdown = document.getElementById("screenshot-mode");
+  dropdown.innerHTML = "";
+
+  const optionAll = document.createElement("option");
+  optionAll.value = "all";
+  optionAll.textContent = "📸 Screenshot All";
+  dropdown.appendChild(optionAll);
+
+  const tiers = ["S", "A", "B", "C", "D", "F", "I don't know this person", "Unsorted"];
+  tiers.forEach(tier => {
+    const opt = document.createElement("option");
+    opt.value = `tier:${tier}`;
+    opt.textContent = `📷 ${tier}`;
+    dropdown.appendChild(opt);
+  });
+});
+
 
 window.takeScreenshot = takeScreenshot;
 window.downloadScreenshot = downloadScreenshot;
