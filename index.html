@@ -206,7 +206,7 @@ function makeUserCard(user) {
   div.innerHTML = `
     <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
     <div style="font-size: 0.8em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
-      ${user.global_name || user.username} ${isStaff ? '🔨' : ''}
+      ${user.global_name || user.username} ${isStaff ? '🔨' : isOwner ? '👑' : ''}
     </div>
     <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
     <div style="font-size: 0.6em; margin-top: 2px;">${badge}</div>
