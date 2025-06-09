@@ -153,7 +153,7 @@
 
 <script>
 const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
-const discordUserIDs = [
+const discordUserIDs = Array.from(new Set([
   "607111863733321748", "715662341554831432", "998198569070759998", "1243691872547770436",
   "550362161726357505", "566552776570568704", "737378159263219743", "780160448019562508",
   "420340694675095563", "1220187432675311636", "814601973277524029", "1269470906657275914",
@@ -161,8 +161,15 @@ const discordUserIDs = [
   "838262453455683659", "791032529880481813", "1120343508088266793", "779791460051845120",
   "808883970879913996", "703224335451684936", "697831265583235234", "508744066402484270",
   "1165401771808653433", "1007019174465380472", "959151490910548048", "996506627408678964",
-  "229571357984161792", "780153669609717803", "999832416006963221"
-];
+  "229571357984161792", "780153669609717803", "999832416006963221",
+  "1263466589861445654", "927549490028740668", "1124713410639171675", "1279726384557723709",
+  "406688754611388417", "386752543507742723", "679810253633880083", "1040540715832320051",
+  "1123369915957653515", "1103896260630556746", "1102635485228179606", "661830622825676800",
+  "795882748308226068", "349952526801698818", "647774746775388161", "1209309383306121256",
+  "543878354277761024", "612420427314233377", "1206403280356511794", "1262606077674131581",
+  "317462690475802624", "630191377854234625", "1067902019781808148", "1210387376556351488",
+  "1320502345057959950"
+]));
 
 const tierLabels = ["S", "A", "B", "C", "D", "F"];
 const tiersContainer = document.getElementById("tiers-container");
@@ -181,10 +188,28 @@ function makeUserCard(user) {
   div.className = "user-card";
   div.dataset.userid = user.id;
 
+  const isOwner = user.id === "1007019174465380472";
+  const isStaff = [
+    "959151490910548048", "706451517619830804", "607111863733321748",
+    "996506627408678964", "229571357984161792", "780153669609717803",
+    "999832416006963221"
+  ].includes(user.id);
+
+  const badge = isOwner
+    ? '<span style="background:#010101;color:white;padding:2px 6px;border-radius:10px;">owner</span>'
+    : isStaff
+    ? '<span style="background:#54e4b9;color:black;padding:2px 6px;border-radius:10px;">staff</span>'
+    : '';
+
+  const emoji = isOwner ? '👑' : isStaff ? '🔨' : '';
+
   div.innerHTML = `
     <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
-    <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
+    <div style="font-size: 0.8em; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
+      ${emoji} ${user.global_name || user.username}
+    </div>
     <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
+    <div style="font-size: 0.6em; margin-top: 2px;">${badge}</div>
   `;
 
   div.addEventListener("click", () => {
