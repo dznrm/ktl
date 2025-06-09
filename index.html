@@ -9,16 +9,16 @@
       background: #1e1e1e;
       color: #f5f5f5;
       font-family: sans-serif;
-      padding: 20px;
+      padding: 10px;
     }
 
     h1 {
-      font-size: 2em;
-      margin-bottom: 30px;
+      font-size: 1.5em;
+      margin-bottom: 20px;
     }
 
     .tier {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       padding: 10px;
       border: 1px solid #444;
       border-radius: 12px;
@@ -27,20 +27,21 @@
 
     .tier-name {
       font-weight: bold;
-      font-size: 1.3em;
-      margin-bottom: 10px;
+      font-size: 1.1em;
+      margin-bottom: 8px;
     }
 
     .user-card {
       background: #3a3a3a;
       border: 2px solid #555;
       border-radius: 10px;
-      padding: 10px;
-      width: 100px;
+      padding: 8px;
+      width: 80px;
       text-align: center;
-      margin: 8px;
+      margin: 5px;
       cursor: grab;
       transition: transform 0.2s, border 0.2s;
+      touch-action: manipulation;
     }
 
     .user-card:hover {
@@ -51,7 +52,8 @@
     .user-grid {
       display: flex;
       flex-wrap: wrap;
-      min-height: 80px;
+      gap: 5px;
+      min-height: 60px;
       padding: 5px;
       border: 2px dashed #444;
       border-radius: 10px;
@@ -59,13 +61,30 @@
     }
 
     .floating-pool {
-      margin-top: 40px;
+      margin-top: 30px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    @media (max-width: 600px) {
+      .user-card {
+        width: 60px;
+        font-size: 0.7em;
+        padding: 6px;
+      }
+
+      .tier-name {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>My Kencord Tierlist</h1>
+  <h1>My Discord Tierlist</h1>
   <div id="tiers-container"></div>
   <div class="floating-pool">
     <h2>Unsorted</h2>
@@ -75,10 +94,11 @@
   <script>
     const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
 
-  const discordUserIDs = [
-  "706451517619830804",
-  "1201620937049636994"
-];
+    const discordUserIDs = [
+      "1277028451835973703",
+      "706451517619830804",
+      "1201620937049636994"
+    ];
 
     const tierLabels = [
       "S",
@@ -104,9 +124,9 @@
       div.dataset.userid = user.id;
 
       div.innerHTML = `
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="64" height="64" style="border-radius: 50%; margin-bottom: 6px;" />
-        <div style="font-size: 0.85em; font-weight: bold;">${user.global_name || user.username}</div>
-        <div style="font-size: 0.7em; color: gray;">@${user.username}</div>
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="48" height="48" style="border-radius: 50%; margin-bottom: 4px;" />
+        <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
+        <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
       `;
 
       div.addEventListener("dragstart", e => {
@@ -134,26 +154,40 @@
         tierDiv.appendChild(userGrid);
         tiersContainer.appendChild(tierDiv);
 
-        userGrid.addEventListener("dragover", e => e.preventDefault());
-        userGrid.addEventListener("drop", e => {
-          e.preventDefault();
-          const userId = e.dataTransfer.getData("text/plain");
-          const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
-          if (card && e.currentTarget !== card.parentNode) {
-            e.currentTarget.appendChild(card);
-          }
-        });
+        setupDropBehavior(userGrid);
       });
 
-      floatingGrid.addEventListener("dragover", e => e.preventDefault());
-      floatingGrid.addEventListener("drop", e => {
+      setupDropBehavior(floatingGrid);
+    }
+
+    function setupDropBehavior(container) {
+      container.addEventListener("dragover", e => {
         e.preventDefault();
+        const afterElement = getDragAfterElement(container, e.clientX);
         const userId = e.dataTransfer.getData("text/plain");
         const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
-        if (card && floatingGrid !== card.parentNode) {
-          floatingGrid.appendChild(card);
+        if (!card) return;
+        if (afterElement == null) {
+          container.appendChild(card);
+        } else {
+          container.insertBefore(card, afterElement);
         }
       });
+
+      container.addEventListener("drop", e => e.preventDefault());
+    }
+
+    function getDragAfterElement(container, x) {
+      const draggableElements = [...container.querySelectorAll('.user-card:not(.dragging)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
     async function init() {
