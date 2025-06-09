@@ -138,13 +138,13 @@
 
 <h1>My Kencord Tierlist</h1>
 <div id="tiers-container"></div>
-<div class="tier">
-  <div class="tier-name">I don't know this person</div>
-  <div id="unknown-grid" class="user-grid" data-tier="unknown"></div>
-</div>
 <div class="floating-pool" id="floating-section">
   <h2>Unsorted</h2>
   <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
+</div>
+<div class="tier">
+  <div class="tier-name">I don't know this person</div>
+  <div id="unknown-grid" class="user-grid" data-tier="unknown"></div>
 </div>
 <div class="button-row">
   <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
@@ -273,12 +273,24 @@ function renderTiers() {
     tiersContainer.appendChild(tierDiv);
   });
 
+  // floating grid (unsorted)
   new Sortable(floatingGrid, {
     animation: 150,
     group: "users",
     fallbackOnBody: true,
     swapThreshold: 0.65
   });
+
+  // "i don't know this person" grid
+  const unknownGrid = document.getElementById("unknown-grid");
+  if (unknownGrid) {
+    new Sortable(unknownGrid, {
+      animation: 150,
+      group: "users",
+      fallbackOnBody: true,
+      swapThreshold: 0.65
+    });
+  }
 }
 
 function init() {
