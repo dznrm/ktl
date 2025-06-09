@@ -95,29 +95,13 @@
     .credit {
       margin-top: 40px;
       text-align: center;
-      font-size: 0.9em;
+      font-size: 0.95em;
       color: #888;
     }
 
-    .credit-box {
-      display: inline-flex;
-      align-items: center;
-      background: linear-gradient(135deg, #333, #444);
-      padding: 12px 16px;
-      margin-top: 8px;
-      border-radius: 12px;
-      color: #f5f5f5;
-      font-size: 0.95em;
-      box-shadow: 0 0 10px rgba(0,255,200,0.3), 0 0 5px rgba(0,255,200,0.2);
-      backdrop-filter: blur(6px);
-      gap: 10px;
-    }
-
-    .credit-box img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
+    .credit.big {
+      font-size: 1.6em;
+      color: #fff;
     }
 
     @media (max-width: 600px) {
@@ -143,12 +127,8 @@
   </div>
   <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
 
-  <div class="credit">
-    Brought to you by
-    <div class="credit-box">
-      <img src="https://cdn.discordapp.com/avatars/706451517619830804/4ef7a3b0151eafc59eb2a8e2b8e4c9db.png?size=64" alt="dznrm pfp" crossorigin="anonymous">
-      <span>@dznrm</span>
-    </div>
+  <div class="credit" id="credit-text">
+    Brought to you by @dznrm
   </div>
 
   <script>
@@ -165,6 +145,7 @@
     const tiersContainer = document.getElementById("tiers-container");
     const floatingGrid = document.getElementById("floating-grid");
     const floatingSection = document.getElementById("floating-section");
+    const creditText = document.getElementById("credit-text");
 
     async function fetchUser(id) {
       const res = await fetch(`${backendBase}/user/${id}`);
@@ -252,17 +233,17 @@
 
     function takeScreenshot() {
       const button = document.querySelector('.screenshot-btn');
-      const credit = document.querySelector('.credit');
       const shouldHideUnsorted = floatingGrid.children.length === 0;
 
       if (shouldHideUnsorted) floatingSection.style.display = 'none';
       button.style.display = 'none';
-      credit.style.display = 'none';
+
+      creditText.classList.add("big");
 
       html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
         if (shouldHideUnsorted) floatingSection.style.display = 'block';
         button.style.display = 'block';
-        credit.style.display = 'block';
+        creditText.classList.remove("big");
 
         canvas.toBlob(blob => {
           navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
