@@ -54,6 +54,7 @@
       margin-bottom: 4px;
       object-fit: cover;
       background: #222;
+      image-rendering: auto;
     }
 
     .user-card:hover {
@@ -108,7 +109,7 @@
 
   <h1>My Kencord Tierlist</h1>
   <div id="tiers-container"></div>
-  <div class="floating-pool">
+  <div class="floating-pool" id="floating-section">
     <h2>Unsorted</h2>
     <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
   </div>
@@ -127,6 +128,7 @@
 
     const tiersContainer = document.getElementById("tiers-container");
     const floatingGrid = document.getElementById("floating-grid");
+    const floatingSection = document.getElementById("floating-section");
 
     async function fetchUser(id) {
       const res = await fetch(`${backendBase}/user/${id}`);
@@ -139,7 +141,7 @@
       div.dataset.userid = user.id;
 
       div.innerHTML = `
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" />
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" alt="pfp" crossorigin="anonymous" />
         <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
         <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
       `;
@@ -214,9 +216,15 @@
 
     function takeScreenshot() {
       const button = document.querySelector('.screenshot-btn');
+      const shouldHideUnsorted = floatingGrid.children.length === 0;
+
+      if (shouldHideUnsorted) floatingSection.style.display = 'none';
       button.style.display = 'none';
-      html2canvas(document.body, { backgroundColor: null }).then(canvas => {
+
+      html2canvas(document.body, { backgroundColor: null, useCORS: true }).then(canvas => {
+        if (shouldHideUnsorted) floatingSection.style.display = 'block';
         button.style.display = 'block';
+
         canvas.toBlob(blob => {
           navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
             .then(() => alert('Screenshot copied to clipboard ✅'))
