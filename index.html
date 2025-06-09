@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kencord Tierlist</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body {
       background: #1e1e1e;
@@ -64,9 +66,19 @@
       margin-top: 30px;
     }
 
-    img {
-      max-width: 100%;
-      height: auto;
+    .screenshot-btn {
+      margin-top: 30px;
+      background-color: #444;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    .screenshot-btn:hover {
+      background-color: #666;
     }
 
     @media (max-width: 600px) {
@@ -90,6 +102,7 @@
     <h2>Unsorted</h2>
     <div id="floating-grid" class="user-grid" data-tier="unsorted"></div>
   </div>
+  <button class="screenshot-btn" onclick="takeScreenshot()">📸 Screenshot & Copy</button>
 
   <script>
     const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
@@ -120,7 +133,6 @@
     function makeUserCard(user) {
       const div = document.createElement("div");
       div.className = "user-card";
-      div.draggable = true;
       div.dataset.userid = user.id;
 
       div.innerHTML = `
@@ -128,10 +140,6 @@
         <div style="font-size: 0.8em; font-weight: bold;">${user.global_name || user.username}</div>
         <div style="font-size: 0.65em; color: gray;">@${user.username}</div>
       `;
-
-      div.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text/plain", user.id);
-      });
 
       return div;
     }
@@ -154,40 +162,10 @@
         tierDiv.appendChild(userGrid);
         tiersContainer.appendChild(tierDiv);
 
-        setupDropBehavior(userGrid);
+        new Sortable(userGrid, { group: "tierlist", animation: 150 });
       });
 
-      setupDropBehavior(floatingGrid);
-    }
-
-    function setupDropBehavior(container) {
-      container.addEventListener("dragover", e => {
-        e.preventDefault();
-        const afterElement = getDragAfterElement(container, e.clientX);
-        const userId = e.dataTransfer.getData("text/plain");
-        const card = document.querySelector(`.user-card[data-userid="${userId}"]`);
-        if (!card) return;
-        if (afterElement == null) {
-          container.appendChild(card);
-        } else {
-          container.insertBefore(card, afterElement);
-        }
-      });
-
-      container.addEventListener("drop", e => e.preventDefault());
-    }
-
-    function getDragAfterElement(container, x) {
-      const draggableElements = [...container.querySelectorAll('.user-card:not(.dragging)')];
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = x - box.left - box.width / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
+      new Sortable(floatingGrid, { group: "tierlist", animation: 150 });
     }
 
     async function init() {
@@ -203,6 +181,16 @@
       sorted.forEach(user => {
         const card = makeUserCard(user);
         floatingGrid.appendChild(card);
+      });
+    }
+
+    function takeScreenshot() {
+      html2canvas(document.body).then(canvas => {
+        canvas.toBlob(blob => {
+          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+            .then(() => alert('Screenshot copied to clipboard ✅'))
+            .catch(() => alert('Failed to copy screenshot. Use a modern browser.'));
+        });
       });
     }
 
