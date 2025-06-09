@@ -153,7 +153,16 @@
 
 <script>
 const backendBase = "https://13662b75-25c0-44af-b2c1-a4b7fa645f4d-00-3pcbx2hyxvvfn.worf.replit.dev";
-const discordUserIDs = ["1277028451835973703","706451517619830804","1201620937049636994"];
+const discordUserIDs = [
+  "607111863733321748", "715662341554831432", "998198569070759998", "1243691872547770436",
+  "550362161726357505", "566552776570568704", "737378159263219743", "780160448019562508",
+  "420340694675095563", "1220187432675311636", "814601973277524029", "1269470906657275914",
+  "530255167593906185", "1085721807803396096", "1200208828331995148", "985470745905864724",
+  "838262453455683659", "791032529880481813", "1120343508088266793", "779791460051845120",
+  "808883970879913996", "703224335451684936", "697831265583235234", "508744066402484270",
+  "1165401771808653433", "1007019174465380472", "959151490910548048", "996506627408678964",
+  "229571357984161792", "780153669609717803", "999832416006963221"
+];
 const tierLabels = ["S", "A", "B", "C", "D", "F"];
 const tiersContainer = document.getElementById("tiers-container");
 const floatingGrid = document.getElementById("floating-grid");
@@ -205,7 +214,8 @@ function renderTiers() {
     const userGrid = document.createElement("div");
     userGrid.className = "user-grid";
     userGrid.dataset.tier = label;
-    userGrid.addEventListener("click", () => {
+
+    userGrid.addEventListener("click", (e) => {
       if (selectedUser && window.innerWidth <= 600) {
         userGrid.appendChild(selectedUser);
         selectedUser.classList.remove("selected");
@@ -223,6 +233,14 @@ function renderTiers() {
     tierDiv.appendChild(title);
     tierDiv.appendChild(userGrid);
     tiersContainer.appendChild(tierDiv);
+  });
+
+  new Sortable(floatingGrid, {
+    animation: 150,
+    group: "users",
+    fallbackOnBody: true,
+    swapThreshold: 0.65
+  });
   });
 
   new Sortable(floatingGrid, {
